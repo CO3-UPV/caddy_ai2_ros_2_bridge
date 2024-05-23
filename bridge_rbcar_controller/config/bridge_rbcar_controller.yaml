@@ -10,4 +10,7 @@
     pub_topic_2: "imu"
     ros_2_server_port_2: 8890
 
-    Hz: 25
+    pub_topic_3: "steering"
+    ros_2_server_port_3: 8891
+
+    Hz: 100

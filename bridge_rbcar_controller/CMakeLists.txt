@@ -13,9 +13,10 @@ find_package(ament_cmake REQUIRED)
 add_subdirectory(thirdparty/json-3.11.3)
 find_package(rclcpp REQUIRED)
 find_package(ackermann_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 add_executable(bridge_rbcar_controller src/bridge_rbcar_controller.cpp)
-ament_target_dependencies(bridge_rbcar_controller rclcpp ackermann_msgs)
+ament_target_dependencies(bridge_rbcar_controller rclcpp ackermann_msgs sensor_msgs)
 target_include_directories(bridge_rbcar_controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
