@@ -1,7 +1,7 @@
 /bridge_rbcar_controller_node:
   ros__parameters:
     sub_topic: "command"
-    ros_1_server_ip: "localhost"
+    ros_1_server_ip: "192.168.0.200"
     ros_1_server_port: 8888
 
     pub_topic_1: "speed"

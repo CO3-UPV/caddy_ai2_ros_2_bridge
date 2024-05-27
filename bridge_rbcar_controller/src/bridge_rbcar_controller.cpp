@@ -32,11 +32,11 @@ class MinimalNode : public rclcpp::Node
     bool _ros_1_server_binded_3_ = true;
     std::mutex mtx_3;
 
-    bool _ros_1_new_message_1_ = true;
+    bool _ros_1_new_message_1_ = false;
     json _pub_json_1_;
-    bool _ros_1_new_message_2_ = true;
+    bool _ros_1_new_message_2_ = false;
     json _pub_json_2_;
-    bool _ros_1_new_message_3_ = true;
+    bool _ros_1_new_message_3_ = false;
     json _pub_json_3_;
 
     std::string sub_topic;
@@ -106,25 +106,25 @@ class MinimalNode : public rclcpp::Node
         : Node("bridge_rbcar_controller_node", options)
     {
         this->declare_parameter("sub_topic", "command");
-        this->declare_parameter("ros_1_server_ip", "localhost");
+        this->declare_parameter("ros_1_server_ip", "192.168.0.200");
         this->declare_parameter("ros_1_server_port", 8888);
         this->declare_parameter("pub_topic_1", "speed");
         this->declare_parameter("ros_2_server_port_1", 8889);
         this->declare_parameter("pub_topic_2", "imu");
         this->declare_parameter("ros_2_server_port_2", 8890);
         this->declare_parameter("pub_topic_3", "steering");
-        this->declare_parameter("ros_2_server_port_3", 8890);
+        this->declare_parameter("ros_2_server_port_3", 8891);
         this->declare_parameter("Hz", 100);
 
         this->get_parameter("sub_topic", sub_topic);
         this->get_parameter("ros_1_server_ip", ros_1_server_ip);
         this->get_parameter("ros_1_server_port", ros_1_server_port);
-        this->declare_parameter("pub_topic_1", pub_topic_1);
-        this->declare_parameter("ros_2_server_port_1", ros_2_server_port_1);
-        this->declare_parameter("pub_topic_2", pub_topic_2);
-        this->declare_parameter("ros_2_server_port_2", ros_2_server_port_2);
-        this->declare_parameter("pub_topic_3", pub_topic_3);
-        this->declare_parameter("ros_2_server_port_3", ros_2_server_port_3);
+        this->get_parameter("pub_topic_1", pub_topic_1);
+        this->get_parameter("ros_2_server_port_1", ros_2_server_port_1);
+        this->get_parameter("pub_topic_2", pub_topic_2);
+        this->get_parameter("ros_2_server_port_2", ros_2_server_port_2);
+        this->get_parameter("pub_topic_3", pub_topic_3);
+        this->get_parameter("ros_2_server_port_3", ros_2_server_port_3);
         this->get_parameter("Hz", Hz);
 
         _sub_ = this->create_subscription<ackermann_msgs::msg::AckermannDriveStamped>(sub_topic, 1, std::bind(&MinimalNode::_sub_callback_, this, _1));
@@ -132,32 +132,36 @@ class MinimalNode : public rclcpp::Node
         udpSocket = new UDPSocket<512>(true);
         udpSocket->Connect(ros_1_server_ip.c_str(), ros_1_server_port);
 
-        udpServer_1->Bind(_ros_1_server_port_1_, [](int errorCode, std::string errorMessage) {
-            _ros_1_server_binded_1_ = false; // Error binding socket
-        });
-        if (!_ros_1_server_binded_1_) 
-        { 
-          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
-          return -1;
-        }
+        udpServer_1 = new UDPServer<512>();
+        udpServer_2 = new UDPServer<512>();
+        udpServer_3 = new UDPServer<512>();
 
-        udpServer_2->Bind(_ros_1_server_port_2_, [](int errorCode, std::string errorMessage) {
-            _ros_1_server_binded_2_ = false; // Error binding socket
+        udpServer_1->Bind(ros_2_server_port_1, [](int errorCode, std::string errorMessage) {
+//            _ros_1_server_binded_1_ = false; // Error binding socket
         });
-        if (!_ros_1_server_binded_2_) 
-        { 
-          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
-          return -1;
-        }
+//        if (!_ros_1_server_binded_1_) 
+//        { 
+//          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
+//          return -1;
+//        }
 
-        udpServer_3->Bind(_ros_1_server_port_3_, [](int errorCode, std::string errorMessage) {
-            _ros_1_server_binded_3_ = false; // Error binding socket
+        udpServer_2->Bind(ros_2_server_port_2, [](int errorCode, std::string errorMessage) {
+//            _ros_1_server_binded_2_ = false; // Error binding socket
         });
-        if (!_ros_1_server_binded_3_) 
-        { 
-          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
-          return -1;
-        }
+//        if (!_ros_1_server_binded_2_) 
+//        { 
+//          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
+//          return -1;
+//        }
+
+        udpServer_3->Bind(ros_2_server_port_3, [](int errorCode, std::string errorMessage) {
+//            _ros_1_server_binded_3_ = false; // Error binding socket
+        });
+//        if (!_ros_1_server_binded_3_) 
+//        { 
+//          //RCLCPP_ERROR("No se ha podido iniciar correctamente el servidor UDP - ha fallado el BINDING - posiblemente puerto ocupado por otro proceso."); 
+//          return -1;
+//        }
 
         udpServer_1->onRawMessageReceived = [&](const char* message, int length, std::string ipv4, uint16_t port) {
             mtx_1.lock();
@@ -188,8 +192,8 @@ class MinimalNode : public rclcpp::Node
 
         _pub_1_ = this->create_publisher<std_msgs::msg::Float32>(pub_topic_1, 1);
         _pub_2_ = this->create_publisher<sensor_msgs::msg::Imu>(pub_topic_2, 1);
-        _pub_3_ = this->create_publisher<sensor_msgs::msg::Imu>(pub_topic_3, 1);
-        timer_ = this->create_wall_timer(period_duration, std::bind(&MinimalPublisher::timer_callback, this));
+        _pub_3_ = this->create_publisher<std_msgs::msg::Float32>(pub_topic_3, 1);
+        timer_ = this->create_wall_timer(period_duration, std::bind(&MinimalNode::timer_callback, this));
     }
   
     ~MinimalNode()
